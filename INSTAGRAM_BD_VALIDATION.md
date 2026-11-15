@@ -172,3 +172,20 @@ failures; signed APK and DEX audit completed. Audit checks the new native toolba
 hook. The baseline D8 internal-error limitation remains. Device visibility and
 click behavior require retesting. Logs: logs/bd-tools3-build.log,
 logs/bd-tools3-patch.log, logs/bd-tools3-audit.log.
+
+## BD tools 4 profile registration
+
+Device report from tools 3: profile creation=0, toolbar render=23. The visible
+button therefore had no registered selection screen. This is an implementation
+failure, not user misuse. Move profile registration from before RETURN_VOID to
+method entry, where native branches cannot skip it. Register a direct weak
+association between each native toolbar and its owning screen, and remove it on
+destruction. Keep the existing complete-post downloader and 67-patch baseline.
+
+Next test APK: output/instagram-452-bd-tools4.apk. Settings/queue diagnostics show
+BD tools 4. Build, both unit-test tasks, string-resource validation, full signed
+patch application and SDK APK checks completed. The DEX audit now requires the
+registration call in the first eight instructions of profile onViewCreated.
+Logs: logs/bd-tools4-build.log, logs/bd-tools4-patch.log, logs/bd-tools4-audit.log.
+The existing baseline D8 limitation remains. Device selection/scroll/download
+behavior still requires confirmation; successful compilation does not prove it.
