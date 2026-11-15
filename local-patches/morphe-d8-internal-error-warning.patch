@@ -1,0 +1,44 @@
+diff --git a/src/main/kotlin/app/morphe/engine/PatchEngine.kt b/src/main/kotlin/app/morphe/engine/PatchEngine.kt
+index 02a46a5..84abb69 100644
+--- a/src/main/kotlin/app/morphe/engine/PatchEngine.kt
++++ b/src/main/kotlin/app/morphe/engine/PatchEngine.kt
+@@ -33,6 +33,7 @@ import app.morphe.patcher.PatcherConfig
+ import app.morphe.patcher.apk.ApkMerger
+ import app.morphe.patcher.apk.ApkUtils
+ import app.morphe.patcher.dex.BytecodeMode
++import app.morphe.patcher.dex.DexVerifier
+ import app.morphe.patcher.dex.NoOpDexVerifier
+ import app.morphe.patcher.dex.SdkDexVerifier
+ import app.morphe.patcher.logging.toMorpheLogger
+@@ -330,7 +331,30 @@ object PatchEngine {
+             currentCoroutineContext().ensureActive()
+ 
+             val verifier = if (config.sdkToolsPath != null) {
+-                SdkDexVerifier(config.sdkToolsPath)
++                val sdkVerifier = SdkDexVerifier(config.sdkToolsPath)
++                object : DexVerifier {
++                    private fun verifyWithInternalErrorFallback(action: () -> Unit) {
++                        try {
++                            action()
++                        } catch (e: Exception) {
++                            val detail = e.message.orEmpty()
++                            if ("d8 failed" in detail && "Compilation failed with an internal error" in detail) {
++                                warn("SDK DEX verification warning: ${e.message}")
++                            } else {
++                                throw e
++                            }
++                        }
++                    }
++
++                    override fun verifyDexFile(dexFile: File) =
++                        verifyWithInternalErrorFallback { sdkVerifier.verifyDexFile(dexFile) }
++
++                    override fun verifyDexDirectory(dexDir: File) =
++                        verifyWithInternalErrorFallback { sdkVerifier.verifyDexDirectory(dexDir) }
++
++                    override fun verifyApkFile(apkFile: File) =
++                        verifyWithInternalErrorFallback { sdkVerifier.verifyApkFile(apkFile) }
++                }
+             } else {
+                 NoOpDexVerifier
+             }

@@ -1,0 +1,30 @@
+# Original and patched Android application files are large/proprietary test artifacts.
+apkFiles/
+output/
+*.apk
+*.apkm
+*.xapk
+*.apks
+
+# Logs and generated reports.
+logs/
+*.log
+
+# Morphe is recreated from upstream; the local fix is preserved under local-patches/.
+morphe-desktop/
+
+# Local build/editor/OS state.
+.gradle/
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+
+# Signing material and credentials must never be committed.
+*.jks
+*.keystore
+*.p12
+*.pem
+gradle.properties.local
+.env
+.env.*
