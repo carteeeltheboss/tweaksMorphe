@@ -148,3 +148,27 @@ to the profile to verify native scrolling/clicks and selection cleanup still wor
 
 Reproduce this filename with:
 `./build-instagram-full.ps1 -OutputName instagram-452-toolbar-queue`.
+
+## BD tools 3 visibility follow-up
+
+The user confirmed the toolbar-queue APK was installed but neither new entry was
+visible. No connected device/logcat was available to establish the precise runtime
+failure. Do not treat successful patching as proof that the UI is visible.
+
+Use `output/instagram-452-bd-tools3.apk` for the next device test. Download Queue now
+uses Piko's styled ButtonPref, has a searchable key, and is first on both the main
+Piko Settings page and Download Media page. Its summary says "BD tools 3". The old
+plain preference lacked a search key and was absent from the Download Media page.
+
+Profile BD now also hooks the verified native ProfileActionBar.A00 renderer, after
+native menu construction. The toolbar button no longer depends on successful
+fragment-screen registration to be displayed. If its screen association fails,
+tapping it reports that explicitly. The queue includes profile creation/render
+counters and the last toolbar attachment result for actionable device diagnostics.
+
+Validation: buildAndroid, testBatchDownload, testDownloadQueueMonitor and
+checkStringResources passed. Full APK patching applied all 67 patches with zero
+failures; signed APK and DEX audit completed. Audit checks the new native toolbar
+hook. The baseline D8 internal-error limitation remains. Device visibility and
+click behavior require retesting. Logs: logs/bd-tools3-build.log,
+logs/bd-tools3-patch.log, logs/bd-tools3-audit.log.
