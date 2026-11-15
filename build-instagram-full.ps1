@@ -29,10 +29,10 @@ try {
 } finally { $ErrorActionPreference = 'Stop' }
 if ($patchExit -ne 0) { throw "Patching failed: $log" }
 $result = Get-Content $report -Raw | ConvertFrom-Json
-$required = @($baseline.requiredOriginalPatches) + @('Saved Posts Batch Downloader')
+$required = @($baseline.requiredOriginalPatches) + @('Saved Posts Batch Downloader', 'Profile Batch Downloader')
 $missing = @($required | Where-Object { $_ -notin $result.appliedPatches })
 if (-not $result.success -or @($result.failedPatches).Count -or $missing.Count -or
     $result.packageName -ne $baseline.packageName -or $result.packageVersion -ne $baseline.packageVersion) {
     throw "Combined APK validation failed. Missing patches: $($missing -join ', '). See $report"
 }
-Write-Host "PASS: all $($baseline.requiredOriginalPatches.Count) baseline patches and Saved BD applied. $output"
+Write-Host "PASS: all $($baseline.requiredOriginalPatches.Count) baseline patches and both batch download patches applied. $output"
