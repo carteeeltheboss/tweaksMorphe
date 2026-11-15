@@ -189,3 +189,16 @@ registration call in the first eight instructions of profile onViewCreated.
 Logs: logs/bd-tools4-build.log, logs/bd-tools4-patch.log, logs/bd-tools4-audit.log.
 The existing baseline D8 limitation remains. Device selection/scroll/download
 behavior still requires confirmation; successful compilation does not prove it.
+
+## Android confirmation: BD tools 4
+
+The user tested output/instagram-452-bd-tools4.apk on an Android device and
+confirmed Profile BD now works and downloads successfully. Reported diagnostics:
+profile creation=2, toolbar render=9. This confirms the registration fix resolves
+the previously reported inability to start profile selection on that device.
+
+This report does not independently confirm every regression-matrix case. Select
+All across multiple loaded pages, mixed-carousel file counts, cancellation/retry,
+profile switching and all original setting behaviors remain targeted follow-up
+checks unless separately confirmed. Keep tools 4 as the current device-confirmed
+Profile BD artifact; no additional feature changes were made after this report.
