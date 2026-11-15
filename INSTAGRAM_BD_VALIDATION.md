@@ -25,7 +25,7 @@ successful applied-patch reports.
 | Full + Saved Select All | 66 | 0 | 0 |
 | Final full + both BD patches | 67 | 0 | 0 |
 
-Final report: `output/reports/instagram-452-complete-bd.json`.
+Final report: `output/reports/instagram-452-toolbar-queue.json`.
 The final DEX audit confirms the original SettingsStatus.load initialization,
 including ghost/privacy/download/feed/theme flags, both lifecycle hooks, exactly
 one shared thumbnail bind hook, and one profile click wrapper.
@@ -64,14 +64,14 @@ No authentication, privacy or content-access bypass is implemented.
   baseline logs. Final classes.dex is byte-for-byte identical to the known-good
   baseline: SHA256 efaf32b5c3e62f365daa5efcfbd1561511b751a3fcf2e17806922873e0e91c09.
   This is a retained baseline verification limitation, not a clean D8 pass.
-- DEX hook/settings audit: PASS (`logs/combined-bd-dex-audit.log`).
+- DEX hook/settings audit: PASS (`logs/toolbar-queue-dex-audit.log`).
 - `adb devices`: no device. Original Saved BD was previously tested successfully
   by the user. New select-all, Profile BD and restored settings need device QA.
 
-Final APK: `output/instagram-452-complete-bd.apk` (Instagram 452.1.0.53.64).
-SHA256: 500a31fe1afd597180a4f89b51faed2e26e44f4502ea6bfcb62a531c4a2984c7.
-Build log: `logs/combined-bd-build-final.log`.
-Patch log: `logs/combined-bd-final.log`.
+Final APK: `output/instagram-452-toolbar-queue.apk` (Instagram 452.1.0.53.64).
+SHA256: d6e621b3b5cb8ac2741759c2760df748cbc41065d5b3abd1d7325abb1efd514f.
+Build log: `logs/toolbar-queue-build.log`.
+Patch log: `logs/toolbar-queue-patch.log`.
 
 ## Reproduce
 
@@ -109,3 +109,42 @@ passing the final APK path.
 9. Open empty/private/deleted-content cases: no inaccessible posts should become
    available, and unavailable items should fail without crashing the app.
 
+
+## Toolbar visibility fix and live download queue
+
+The current test APK places a blue BD button immediately before the profile menu
+inside 452's verified `right_action_bar_buttons` LinearLayout. It hooks native
+configureActionBar (`UserDetailFragment.AeX`) and waits for view attachment/layout.
+This fixes a source-level failure path where initial attachment silently returned
+without a FrameLayout ancestor. Device confirmation is still required; no Android
+runtime log establishing the exact cause of the earlier missing button was available.
+The bottom selection controls appear after tapping BD. Long-press BD to open the
+queue, or use Piko Settings -> Download Queue.
+
+Manual and batch file requests share one serialized worker in Instagram. Duplicate
+pending/active file keys reuse the same future. Other apps do not enable this queue.
+The live queue shows pending/active/completed/failed/cancelled/skipped file records,
+received bytes, known content length, last progress update age, sanitized error
+type/message, and the latest batch's post states. Active files are listed first.
+Cancel pending also cancels remaining batch posts; the active file finishes safely.
+Clear file history preserves pending/active work. History is process-local and
+retains the latest 200 finished files plus all pending/active records. It resets
+when Instagram exits. Authentication URLs are not exposed in queue diagnostics.
+
+Additional tests: `:extensions:instagram:testDownloadQueueMonitor` passed for state
+transitions, byte progress, immutable snapshots, cancellation, timeout redaction,
+skipped files, bounded finished history, and retention of queued work. Batch tests
+also assert live post states and immediate pending-post cancellation. Final DEX
+audit asserts the native toolbar hook, queue activation in Instagram settings,
+and a reachable Download Queue settings entry. All 67 patches still applied.
+
+For device QA, install `instagram-452-toolbar-queue.apk`, open your own and another
+profile, and look immediately left of the top-right menu for blue BD. Select posts,
+then open Piko Settings -> Download Queue (or long-press BD). While a batch is
+active, request a manual download; confirm one active file and pending work. Test
+slow/offline connectivity and inspect failure details; cancel pending and confirm
+that the current file may finish while the rest stop. Close the queue and return
+to the profile to verify native scrolling/clicks and selection cleanup still work.
+
+Reproduce this filename with:
+`./build-instagram-full.ps1 -OutputName instagram-452-toolbar-queue`.
